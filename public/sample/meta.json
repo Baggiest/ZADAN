@@ -1,0 +1,29 @@
+{
+  "updated_at": "2026-07-22T03:03:31.393249+00:00",
+  "latest_message_at": "2026-07-22T00:34:41+00:00",
+  "message_count": 298,
+  "windows": {
+    "24h": {
+      "file": "counts-24h.csv",
+      "messages": 38,
+      "cities": 25
+    },
+    "48h": {
+      "file": "counts-48h.csv",
+      "messages": 85,
+      "cities": 58
+    },
+    "72h": {
+      "file": "counts-72h.csv",
+      "messages": 124,
+      "cities": 80
+    },
+    "all": {
+      "file": "counts.csv",
+      "messages": 298,
+      "cities": 120
+    }
+  },
+  "channel": "VahidOnline",
+  "source": "export"
+}
