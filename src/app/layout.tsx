@@ -27,10 +27,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${plex.variable} ${notoArabic.variable} antialiased`}
-      >
+      <body className={`${plex.variable} ${notoArabic.variable} antialiased`}>
         {children}
+        <footer className="text-sm text-gray-500 mt-8">
+          Made by Mani E. Sohi{' '}
+          <a href="https://github.com/baggiest" rel="noopener noreferrer" target="_blank">GitHub</a> |{' '}
+          <a href="https://linkedin.com/in/manisohi" rel="noopener noreferrer" target="_blank">LinkedIn</a>
+        </footer>
       </body>
     </html>
   );
