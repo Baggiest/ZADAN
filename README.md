@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Iran War Alarm Heatmap Dashboard
 
-## Getting Started
+Frontend-only **Next.js 15** OSINT dashboard that visualizes Iranian cities from Telegram war-monitoring CSV exports as an interactive SVG heatmap.
 
-First, run the development server:
+No map tiles, API keys, or paid services required.
+
+## Features
+
+- Drag-and-drop / click CSV upload (`extract_cities.py` format)
+- SVG Iran map via `react-simple-maps` + Mercator projection
+- Blurred radial heat circles (log radius, additive blending)
+- Instant tooltips, search, metric filters, sidebar Top 20
+- Stats cards, legend, province borders toggle
+- Export PNG / SVG, fullscreen, keyboard shortcuts
+- Recent uploads history (localStorage)
+- ~1,100 city coordinate lookup + spelling aliases
+
+## Quick start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+A sample dataset from `counts.csv` loads automatically.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> If peer dependency warnings appear for `react-simple-maps` (React 19), install with:
+>
+> ```bash
+> npm install --legacy-peer-deps
+> ```
 
-## Learn More
+## CSV format
 
-To learn more about Next.js, take a look at the following resources:
+Produced by `extract_cities.py` / `zadan2.py`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```csv
+rank,city,messages_mentioning,total_messages,pct_of_messages
+1,بار,47,298,15.8
+2,هرمز,36,298,12.1
+3,بندرعباس,34,298,11.4
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Unknown city names (no coordinate match) are ignored on the map but still counted in row totals where applicable.
 
-## Deploy on Vercel
+## Data files
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Path | Purpose |
+|------|---------|
+| `data/iran.geo.json` | Simplified Iran outline (also served from `public/data/`) |
+| `data/iran-provinces.geo.json` | Province borders (toggle) |
+| `data/cityCoordinates.json` | ~1,095 city lat/lon lookup |
+| `data/aliases.json` | Alternate spellings → canonical names |
+| `public/sample/counts.csv` | Demo dataset |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+City coordinates are approximate city-center points matched from GeoNames against the gazetteer in `zadan2.py`.
+
+## Generate a CSV from Telegram export
+
+```bash
+python3 zadan2.py result.json --out cities.csv
+```
+
+Then upload `cities.csv` in the dashboard.
+
+## Keyboard shortcuts
+
+| Key | Action |
+|-----|--------|
+| `/` | Focus search |
+| `F` | Toggle fullscreen |
+| `P` | Toggle province borders |
+| `L` | Toggle city labels |
+| `Esc` | Clear selection / search |
+
+## Stack
+
+- Next.js 15 (App Router) · TypeScript · React 19
+- Tailwind CSS · Framer Motion
+- react-simple-maps · PapaParse · d3-scale · html-to-image
+
+## Scripts
+
+```bash
+npm run dev      # development server
+npm run build    # production build
+npm run start    # serve production build
+npm run lint     # ESLint
+```
+
+## Notes
+
+- Heat radius: `6 + log(messages) * 12`
+- Opacity scales from `0.15` → `0.8`
+- Color ramp: `#FFE66D` → `#FF9F1C` → `#FF3B30` → `#B10000`
+- Designed as a dark OSINT visualization (`#0B1220` background)
