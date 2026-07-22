@@ -1,0 +1,72 @@
+name: Sync VahidOnline heatmap
+
+on:
+  schedule:
+    # Every 30 minutes — GitHub may delay cron slightly
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: "Days of channel history to fetch"
+        required: false
+        default: "14"
+        type: string
+
+concurrency:
+  group: sync-vahid
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-sync.txt
+
+      - name: Install sync deps
+        run: pip install -r requirements-sync.txt
+
+      - name: Fetch channel + regenerate CSVs
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
+          TELEGRAM_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+          SYNC_LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days || '14' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TELEGRAM_API_ID}" ] || [ -z "${TELEGRAM_API_HASH}" ] || [ -z "${TELEGRAM_SESSION}" ]; then
+            echo "Missing Telegram secrets. Add TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_SESSION."
+            exit 1
+          fi
+          export TELEGRAM_CHANNEL="${TELEGRAM_CHANNEL:-VahidOnline}"
+          python3 sync_vahid.py --lookback-days "${SYNC_LOOKBACK_DAYS}" --channel "${TELEGRAM_CHANNEL}"
+
+      - name: Commit updated samples (if changed)
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/sample/counts.csv \
+                  public/sample/counts-24h.csv \
+                  public/sample/counts-48h.csv \
+                  public/sample/counts-72h.csv \
+                  public/sample/meta.json \
+                  counts.csv || true
+          if git diff --staged --quiet; then
+            echo "No CSV changes."
+          else
+            git commit -m "chore: refresh VahidOnline heatmap samples"
+            git push
+          fi

@@ -32,15 +32,63 @@ A sample dataset from `counts.csv` loads automatically.
 > npm install --legacy-peer-deps
 > ```
 
+## Live sync (GitHub Actions → Vercel)
+
+Iran-hosted machines often cannot reach Telegram. Sync runs on **GitHub Actions**
+(outside Iran), writes CSVs into `public/sample/`, commits them, and Vercel
+redeploys the static files. The Next.js app does **not** talk to Telegram.
+
+### One-time setup
+
+1. Create an API app at [my.telegram.org](https://my.telegram.org) (API ID + hash).
+2. On a machine that **can** reach Telegram:
+
+```bash
+pip install -r requirements-sync.txt
+python3 scripts/telegram_login.py
+```
+
+3. In the GitHub repo → **Settings → Secrets and variables → Actions**, add:
+   - `TELEGRAM_API_ID`
+   - `TELEGRAM_API_HASH`
+   - `TELEGRAM_SESSION` (string printed by the login script)
+   - `TELEGRAM_CHANNEL` (optional, default `VahidOnline`)
+
+4. Enable Actions. Workflow: `.github/workflows/sync-vahid.yml`
+   - **Cron:** every 30 minutes
+   - **Manual:** Actions tab → “Sync VahidOnline heatmap” → Run workflow
+
+### Manual fallbacks (if auto sync fails)
+
+| Method | How |
+|--------|-----|
+| UI **Reload live** | Refetch `/sample/*.csv` after a successful Actions run / deploy |
+| UI **CSV upload** | Upload any `extract_cities` CSV (dashboard “Manual fallback”) |
+| Offline rebuild | `python3 sync_vahid.py --from-export result.json` then commit/push `public/sample/` |
+| Actions manual run | GitHub → Actions → Run workflow |
+
+```bash
+# Offline rebuild from Telegram Desktop export (no API needed)
+python3 sync_vahid.py --from-export result.json
+```
+
+```bash
+# Live fetch (needs env secrets / local session)
+export TELEGRAM_API_ID=...
+export TELEGRAM_API_HASH=...
+export TELEGRAM_SESSION=...
+python3 sync_vahid.py
+```
+
 ## CSV format
 
 Produced by `extract_cities.py` / `zadan2.py`:
 
 ```csv
 rank,city,messages_mentioning,total_messages,pct_of_messages
-1,بار,47,298,15.8
-2,هرمز,36,298,12.1
-3,بندرعباس,34,298,11.4
+1,هرمز,36,298,12.1
+2,بندرعباس,34,298,11.4
+3,تهران,24,298,8.1
 ```
 
 Unknown city names (no coordinate match) are ignored on the map but still counted in row totals where applicable.

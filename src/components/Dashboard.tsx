@@ -9,6 +9,7 @@ import {
 } from "react";
 import { toPng, toSvg } from "html-to-image";
 import { CsvUpload, MetricFilter, SearchBox } from "./CsvUpload";
+import { EscalationMeter } from "./EscalationMeter";
 import { StatsCards } from "./StatsCards";
 import { Sidebar } from "./Sidebar";
 import { IranHeatMap } from "./IranHeatMap";
@@ -42,6 +43,26 @@ const WINDOW_LABEL: Record<TimeWindow, string> = {
   all: "All",
 };
 
+interface LiveMeta {
+  updated_at?: string;
+  latest_message_at?: string;
+  message_count?: number;
+  channel?: string;
+  source?: string;
+}
+
+function formatUpdatedAt(iso?: string): string {
+  if (!iso) return "unknown";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function Dashboard() {
   const [coords, setCoords] = useState<CityCoordinatesMap>({});
   const [aliases, setAliases] = useState<AliasesMap>({});
@@ -62,12 +83,26 @@ export function Dashboard() {
   const [windowCache, setWindowCache] = useState<
     Partial<Record<TimeWindow, CityRow[]>>
   >({});
+  const [liveMeta, setLiveMeta] = useState<LiveMeta | null>(null);
+  const [usingUpload, setUsingUpload] = useState(false);
   const windowCacheRef = useRef(windowCache);
   windowCacheRef.current = windowCache;
 
   const mapRef = useRef<HTMLDivElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
+
+  const fetchLiveMeta = useCallback(async () => {
+    try {
+      const res = await fetch(`/sample/meta.json?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      setLiveMeta((await res.json()) as LiveMeta);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     setHistory(loadUploadHistory());
@@ -81,7 +116,8 @@ export function Dashboard() {
         setReady(true);
       })
       .catch(() => setError("Failed to load city coordinate data."));
-  }, []);
+    void fetchLiveMeta();
+  }, [fetchLiveMeta]);
 
   const applyRows = useCallback(
     (next: CityRow[], name: string, saveHistory = true) => {
@@ -97,15 +133,22 @@ export function Dashboard() {
   );
 
   const loadWindow = useCallback(
-    async (window: TimeWindow) => {
-      const cached = windowCacheRef.current[window];
-      if (cached) {
-        applyRows(cached, `sample · past ${WINDOW_LABEL[window]}`, false);
-        return;
+    async (window: TimeWindow, opts?: { force?: boolean }) => {
+      const force = opts?.force ?? false;
+      if (!force) {
+        const cached = windowCacheRef.current[window];
+        if (cached) {
+          applyRows(cached, `live · past ${WINDOW_LABEL[window]}`, false);
+          setUsingUpload(false);
+          return;
+        }
       }
       setBusy(true);
       try {
-        const res = await fetch(SAMPLE_BY_WINDOW[window]);
+        const bust = `t=${Date.now()}`;
+        const res = await fetch(`${SAMPLE_BY_WINDOW[window]}?${bust}`, {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error("fetch failed");
         const text = await res.text();
         const parsed = parseCityCsv(text);
@@ -114,9 +157,10 @@ export function Dashboard() {
           windowCacheRef.current = next;
           return next;
         });
-        applyRows(parsed, `sample · past ${WINDOW_LABEL[window]}`, false);
+        applyRows(parsed, `live · past ${WINDOW_LABEL[window]}`, false);
+        setUsingUpload(false);
       } catch {
-        setError(`Could not load ${WINDOW_LABEL[window]} sample data.`);
+        setError(`Could not load ${WINDOW_LABEL[window]} live data.`);
       } finally {
         setBusy(false);
       }
@@ -135,6 +179,14 @@ export function Dashboard() {
     void loadWindow(window);
   };
 
+  const reloadLiveData = async () => {
+    setError(null);
+    setWindowCache({});
+    windowCacheRef.current = {};
+    await fetchLiveMeta();
+    await loadWindow(timeWindow, { force: true });
+  };
+
   const mapped = useMemo(
     () => mapCities(rows, coords, aliases),
     [rows, coords, aliases],
@@ -147,6 +199,7 @@ export function Dashboard() {
     try {
       const parsed = await parseCityCsvFile(file);
       applyRows(parsed, file.name, true);
+      setUsingUpload(true);
     } catch {
       setError("Could not parse CSV file.");
     } finally {
@@ -257,9 +310,23 @@ export function Dashboard() {
               OSINT · Iran
             </p>
             <h1 className="truncate text-base font-semibold tracking-tight md:text-lg">
-              War Alarm Heatmap
+              زدنننننن پشماممممم
             </h1>
+            <p className="truncate text-[10px] text-[#6B7280]">
+              Live data updated {formatUpdatedAt(liveMeta?.updated_at)}
+              {usingUpload ? " · viewing manual upload" : ""}
+            </p>
           </div>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void reloadLiveData()}
+            className="rounded-md border border-[#1F2937] bg-[#111827] px-2.5 py-1.5 text-xs text-[#9CA3AF] hover:text-[#E5E7EB] disabled:opacity-50"
+            title="Reload CSVs published by GitHub Actions"
+          >
+            {busy ? "Loading…" : "Reload live"}
+          </button>
 
           <TimeWindowPicker
             value={timeWindow}
@@ -346,6 +413,15 @@ export function Dashboard() {
             </div>
           </div>
 
+          <div className="pointer-events-none absolute bottom-3 left-3 z-10">
+            <div className="pointer-events-auto">
+              <EscalationMeter
+                hitCities={stats.uniqueCities}
+                totalCities={Object.keys(coords).length || 1094}
+              />
+            </div>
+          </div>
+
           {fileName ? (
             <p className="pointer-events-none absolute bottom-3 right-3 z-10 rounded-md border border-[#1F2937]/80 bg-[#0B1220]/85 px-2 py-1 text-[11px] text-[#9CA3AF] backdrop-blur-sm">
               {fileName}
@@ -370,6 +446,51 @@ export function Dashboard() {
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
           <div className="min-w-0 flex-1 space-y-3">
+            <div className="rounded-lg border border-[#1F2937] bg-[#111827] px-4 py-3">
+              <h2 className="text-sm font-semibold text-[#E5E7EB]">
+                Manual fallback
+              </h2>
+              <p className="mt-1 text-xs text-[#9CA3AF]">
+                If GitHub Actions sync fails (or Vercel hasn&apos;t redeployed
+                yet), reload published samples, upload a CSV, or rebuild from a
+                Telegram Desktop export on a machine that can reach Telegram.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void reloadLiveData()}
+                  className="rounded-md border border-[#FF4D4F]/40 bg-[#FF4D4F]/10 px-3 py-1.5 text-xs text-[#FF4D4F] disabled:opacity-50"
+                >
+                  Reload live CSVs
+                </button>
+                {usingUpload ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void reloadLiveData()}
+                    className="rounded-md border border-[#1F2937] bg-[#0B1220] px-3 py-1.5 text-xs text-[#9CA3AF] hover:text-[#E5E7EB]"
+                  >
+                    Back to live data
+                  </button>
+                ) : null}
+              </div>
+              <ol className="mt-3 list-decimal space-y-1 pl-4 text-[11px] text-[#6B7280]">
+                <li>
+                  Auto: GitHub Action{" "}
+                  <code className="text-[#9CA3AF]">sync-vahid</code> every 30m
+                  (also run manually from the Actions tab).
+                </li>
+                <li>
+                  Offline rebuild:{" "}
+                  <code className="text-[#9CA3AF]">
+                    python3 sync_vahid.py --from-export result.json
+                  </code>
+                </li>
+                <li>Or upload a CSV below (same format as extract_cities).</li>
+              </ol>
+            </div>
+
             <CsvUpload onUpload={handleUpload} busy={busy} />
             <MetricFilter value={metric} onChange={setMetric} />
             {history.length > 0 ? (
@@ -383,9 +504,10 @@ export function Dashboard() {
                       <button
                         type="button"
                         className="w-full truncate text-left text-xs text-[#9CA3AF] hover:text-[#FF4D4F]"
-                        onClick={() =>
-                          applyRows(item.rows, item.name, false)
-                        }
+                        onClick={() => {
+                          applyRows(item.rows, item.name, false);
+                          setUsingUpload(true);
+                        }}
                       >
                         {item.name}
                       </button>
@@ -410,9 +532,10 @@ export function Dashboard() {
         </div>
 
         <p className="text-[11px] text-[#6B7280]">
-          Time windows use sample extracts relative to the latest message in the
-          Telegram export. Upload a custom CSV to replace the current view; pick
-          24h / 48h / 72h / All again to return to samples.
+          Live CSVs are produced outside Iran by GitHub Actions (Telegram →{" "}
+          <code className="text-[#9CA3AF]">sync_vahid.py</code> →{" "}
+          <code className="text-[#9CA3AF]">public/sample/</code>
+          ). Vercel only serves the static files after deploy.
         </p>
       </div>
     </div>

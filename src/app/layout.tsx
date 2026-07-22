@@ -15,7 +15,7 @@ const notoArabic = Noto_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "ZADAAAANNNNNN PASHMAAAMMMMM",
+  title: "ZADANNNN PASHMAMMMM",
   description:
     "OSINT heatmap of Iranian cities strike reports by the Iranian people on Telegram gathered by @VahidOnline",
 };

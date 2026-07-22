@@ -107,7 +107,7 @@ export function Sidebar({
 
 export function Legend() {
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-md border border-[#1F2937]/90 bg-[#0B1220]/90 px-3 py-2 backdrop-blur-sm">
+    <div className="pointer-events-none absolute bottom-3 left-[152px] z-10 rounded-md border border-[#1F2937]/90 bg-[#0B1220]/90 px-3 py-2 backdrop-blur-sm sm:left-[160px]">
       <p className="mb-1.5 text-[10px] uppercase tracking-wider text-[#9CA3AF]">
         Activity
       </p>
