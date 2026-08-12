@@ -42,6 +42,11 @@ ALL_PLACES = ALL_CITIES | EXTRA_PLACES
 
 WORD_PATTERN = re.compile(r"[\w\u200c]+", re.UNICODE)
 
+# Simple regex for filtering messages that contain the phrase
+# "پیام های دریافتی" ("received messages"). Matching on the raw text
+# is enough here since it's a fixed phrase, not a pattern with variants.
+RECEIVED_MESSAGES_PATTERN = re.compile(r"پیام های دریافتی")
+
 
 def extract_text_from_message(message: dict) -> str:
     text_field = message.get("text")
@@ -64,6 +69,21 @@ def extract_text_from_message(message: dict) -> str:
         return "".join(parts)
 
     return ""
+
+
+def filter_received_messages(messages: list) -> list:
+    """
+    Keeps only messages whose text contains "پیام های دریافتی".
+    Non-dict entries and messages with no text are dropped.
+    """
+    kept = []
+    for message in messages:
+        if not isinstance(message, dict):
+            continue
+        text = extract_text_from_message(message)
+        if text and RECEIVED_MESSAGES_PATTERN.search(text):
+            kept.append(message)
+    return kept
 
 
 def load_messages(path: str) -> list:
@@ -93,12 +113,14 @@ def count_city_messages(messages: list, cities: set):
     total_messages = 0
     city_message_counts = Counter()
 
+
     for message in messages:
+
         if not isinstance(message, dict):
             continue
         if message.get("type") != "message":
             continue
-
+        
         total_messages += 1
 
         text = extract_text_from_message(message)

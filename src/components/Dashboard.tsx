@@ -310,7 +310,7 @@ export function Dashboard() {
               OSINT · Iran
             </p>
             <h1 className="truncate text-base font-semibold tracking-tight md:text-lg">
-              زدنننننن پشماممممم
+              زدنننننن؟
             </h1>
             <p className="truncate text-[10px] text-[#6B7280]">
               Live data updated {formatUpdatedAt(liveMeta?.updated_at)}
