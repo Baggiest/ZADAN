@@ -1,4 +1,4 @@
-# Iran War Alarm Heatmap Dashboard
+# Iran War Heatmap Dashboard (Based on real people reporting)
 
 
 Frontend-only **Next.js 15** OSINT dashboard that I made so I can tell if a war is back on or my family is being dramatic.
