@@ -1,7 +1,7 @@
 # Iran War Alarm Heatmap Dashboard
 
-Frontend-only **Next.js 15** OSINT dashboard that visualizes Iranian cities from Telegram war-monitoring CSV exports as an interactive SVG heatmap.
 
+Frontend-only **Next.js 15** OSINT dashboard that I made so I can tell if a war is back on or my family is being dramatic.
 No map tiles, API keys, or paid services required.
 
 ## Features
