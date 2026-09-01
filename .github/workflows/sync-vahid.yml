@@ -77,3 +77,9 @@ jobs:
             git commit -m "chore: refresh VahidOnline heatmap samples"
             git push
           fi
+      
+      - name: Debug secrets
+        run: |
+          echo "API_ID length: ${#TELEGRAM_API_ID}"
+          echo "API_HASH length: ${#TELEGRAM_API_HASH}"
+          echo "SESSION length: ${#TELEGRAM_SESSION}"
