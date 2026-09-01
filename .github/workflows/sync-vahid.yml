@@ -46,7 +46,14 @@ jobs:
           SYNC_LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days || '14' }}
         run: |
           set -euo pipefail
-          if [ -z "${TELEGRAM_API_ID}" ] || [ -z "${TELEGRAM_API_HASH}" ] || [ -z "${TELEGRAM_SESSION}" ]; then
+          # Fallback: load .env if GitHub secrets are not set
+          if [ -z "${TELEGRAM_API_ID:-}" ] || [ -z "${TELEGRAM_API_HASH:-}" ] || [ -z "${TELEGRAM_SESSION:-}" ]; then
+            if [ -f .env ]; then
+              echo "GitHub secrets not found, loading from .env file"
+              set -a; source .env; set +a
+            fi
+          fi
+          if [ -z "${TELEGRAM_API_ID:-}" ] || [ -z "${TELEGRAM_API_HASH:-}" ] || [ -z "${TELEGRAM_SESSION:-}" ]; then
             echo "Missing Telegram secrets. Add TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_SESSION."
             exit 1
           fi
