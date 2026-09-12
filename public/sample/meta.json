@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-09-11T23:07:25.625391+00:00",
+  "updated_at": "2026-09-12T01:25:50.189846+00:00",
   "latest_message_at": "2026-09-11T17:16:03+00:00",
-  "message_count": 195,
+  "message_count": 194,
   "windows": {
     "24h": {
       "file": "counts-24h.csv",
@@ -20,7 +20,7 @@
     },
     "all": {
       "file": "counts.csv",
-      "messages": 195,
+      "messages": 194,
       "cities": 65
     }
   },
