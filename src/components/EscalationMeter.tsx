@@ -4,21 +4,21 @@ import { useMemo } from "react";
 
 /** Escalation bands (% of gazetteer cities reporting activity). */
 export const ESCALATION_BANDS = [
-  { max: 3, color: "#00E676", label: "<3%" },
-  { max: 10, color: "#A3E635", label: "3–10%" },
-  { max: 20, color: "#FACC15", label: "10–20%" },
-  { max: 40, color: "#FF9F1C", label: "20–40%" },
-  { max: Infinity, color: "#FF1E1E", label: ">40%" },
+  { max: 2, color: "#00E676", label: "<2%" },
+  { max: 8, color: "#A3E635", label: "2–8%" },
+  { max: 16, color: "#FACC15", label: "8–16%" },
+  { max: 32, color: "#FF9F1C", label: "16–32%" },
+  { max: Infinity, color: "#FF1E1E", label: ">32%" },
 ] as const;
 
-/** Dial scale: 0–50% of cities (red band starts at 40%). */
-const GAUGE_MAX_PCT = 50;
+/** Dial scale: 0–40% of cities (red band starts at 32%). */
+const GAUGE_MAX_PCT = 40;
 
 export function escalationLevel(pct: number): number {
-  if (pct < 3) return 0;
-  if (pct < 10) return 1;
-  if (pct < 20) return 2;
-  if (pct < 40) return 3;
+  if (pct < 2) return 0;
+  if (pct < 8) return 1;
+  if (pct < 16) return 2;
+  if (pct < 32) return 3;
   return 4;
 }
 
@@ -65,7 +65,7 @@ export function EscalationMeter({
   const angle = needleAngle(pct);
 
   const segments = useMemo(() => {
-    const edges = [0, 3, 10, 20, 40, GAUGE_MAX_PCT];
+    const edges = [0, 2, 8, 16, 32, GAUGE_MAX_PCT];
     return edges.slice(0, -1).map((startPct, i) => {
       const endPct = edges[i + 1];
       const a0 = -90 + (startPct / GAUGE_MAX_PCT) * 180;
