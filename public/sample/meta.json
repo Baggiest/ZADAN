@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-09-25T12:55:51.116203+00:00",
-  "latest_message_at": "2026-09-25T02:35:27+00:00",
-  "message_count": 144,
+  "updated_at": "2026-09-25T17:52:52.134622+00:00",
+  "latest_message_at": "2026-09-25T13:45:59+00:00",
+  "message_count": 145,
   "windows": {
     "24h": {
       "file": "counts-24h.csv",
-      "messages": 15,
-      "cities": 11
+      "messages": 14,
+      "cities": 6
     },
     "48h": {
       "file": "counts-48h.csv",
-      "messages": 22,
-      "cities": 18
+      "messages": 30,
+      "cities": 19
     },
     "72h": {
       "file": "counts-72h.csv",
-      "messages": 41,
-      "cities": 22
+      "messages": 48,
+      "cities": 23
     },
     "all": {
       "file": "counts.csv",
-      "messages": 144,
-      "cities": 70
+      "messages": 145,
+      "cities": 69
     }
   },
   "channel": "vahidonline",
