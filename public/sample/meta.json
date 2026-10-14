@@ -1,26 +1,26 @@
 {
-  "updated_at": "2026-10-14T00:33:40.016700+00:00",
-  "latest_message_at": "2026-10-13T20:08:01+00:00",
-  "message_count": 120,
+  "updated_at": "2026-10-14T05:57:46.963613+00:00",
+  "latest_message_at": "2026-10-14T05:11:18+00:00",
+  "message_count": 121,
   "windows": {
     "24h": {
       "file": "counts-24h.csv",
       "messages": 11,
-      "cities": 6
+      "cities": 7
     },
     "48h": {
       "file": "counts-48h.csv",
-      "messages": 19,
-      "cities": 10
+      "messages": 20,
+      "cities": 11
     },
     "72h": {
       "file": "counts-72h.csv",
-      "messages": 27,
+      "messages": 26,
       "cities": 17
     },
     "all": {
       "file": "counts.csv",
-      "messages": 120,
+      "messages": 121,
       "cities": 41
     }
   },
