@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-20T23:19:11.600588+00:00",
+  "updated_at": "2026-10-21T01:54:09.635921+00:00",
   "latest_message_at": "2026-10-20T21:38:37+00:00",
-  "message_count": 119,
+  "message_count": 118,
   "windows": {
     "24h": {
       "file": "counts-24h.csv",
@@ -20,8 +20,8 @@
     },
     "all": {
       "file": "counts.csv",
-      "messages": 119,
-      "cities": 54
+      "messages": 118,
+      "cities": 53
     }
   },
   "channel": "vahidonline",
